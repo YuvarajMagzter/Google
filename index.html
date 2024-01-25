@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Google Sign-In</title>
+    <!-- Include the Google Sign-In library -->
+    <script src="https://apis.google.com/js/platform.js" async defer></script>
+</head>
+<body>
+
+    <button onclick="signInWithGoogle()">Google</button>
+
+    <form action="?/signByGoogle" method="post">
+        <input type="hidden" id="captcha3" name="captcha">
+        <input type="hidden" id="id_token" name="id_token">
+        <input type="hidden" id="email" name="email">
+        <input type="hidden" id="gid" name="gid">
+        <input type="hidden" id="clientId" name="clientId" value="{process.env.GOOGLE_CLIENT_ID}">
+  
+        <button type="submit" id="submit" name="submit" style="display: none;">Submit</button>
+    </form>
+
+    <script>
+        async function signInWithGoogle() {
+            try {
+                console.log("Google signin button clicked.");
+                // Ensure gapi is defined before using it
+                if (typeof gapi === 'undefined') {
+                    console.error("Google API client library is not loaded.");
+                    return;
+                }
+                // Get the Google Auth instance
+                var auth2 = await gapi.auth2.getAuthInstance();
+                console.log(auth2, "auth2 output.");
+
+                // Sign in with Google
+                var googleUser = await auth2.signIn();
+                var authResponse = googleUser.getAuthResponse();
+                console.log(authResponse, "authResponse");
+
+                var profile = googleUser.getBasicProfile();
+                console.log(profile, "profilee");
+
+                document.getElementById("id_token").value = authResponse.id_token;
+                document.getElementById("gid").value = profile.getId();
+                document.getElementById("email").value = profile.getEmail();
+
+                if (authResponse) {
+                    document.getElementById("submit").click();
+                }
+            } catch (error) {
+                console.error("Error signing in with Google:", error);
+            }
+        }
+
+        // This function gets called when the Google API client is loaded
+        function onGapiLoad() {
+            console.log("onload function has been called for google..........");
+
+            var google_client_id = document.getElementById("clientId").value;
+            console.log("GOOGLE_CLIENT_ID", google_client_id);
+
+            gapi.load("auth2", function () {
+                // Initialize the Google API client with your client ID
+                gapi.auth2.init({
+                    client_id: google_client_id,
+                });
+            });
+        }
+
+        // Check if the DOM content is loaded before calling onGapiLoad
+        document.addEventListener('DOMContentLoaded', onGapiLoad);
+    </script>
+</body>
+</html>
